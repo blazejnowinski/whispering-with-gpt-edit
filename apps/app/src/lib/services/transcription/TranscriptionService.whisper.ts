@@ -48,40 +48,32 @@ export function createTranscriptionServiceWhisper({
 					description: `Please upload a file smaller than ${MAX_FILE_SIZE_MB}MB.`,
 				});
 			}
-			const reader = new FileReader();
-			reader.readAsArrayBuffer(audioBlob);
-			await new Promise(resolve => reader.onload = resolve);
-			const buffer = reader.result as ArrayBuffer;
-			const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-
 			const formData = new FormData();
-			formData.append('file', audioBlob, `recording.${getExtensionFromAudioBlob(audioBlob)}`);
+			formData.append(
+				'file',
+				audioBlob,
+				`recording.${getExtensionFromAudioBlob(audioBlob)}`,
+			);
 			formData.append('model', 'whisper-1');
-
 			if (options.outputLanguage !== 'auto') {
 				formData.append('language', options.outputLanguage);
 			}
-			if (options.prompt) {
-				formData.append('prompt', options.prompt);
-			}
-			if (options.temperature) {
-				formData.append('temperature', options.temperature.toString());
-			}
+			if (options.prompt) formData.append('prompt', options.prompt);
+			if (options.temperature)
+				formData.append('temperature', options.temperature);
 
-			const transcriptionResult = await HttpService.post({
+			const postResponseResult = await HttpService.post({
+				formData,
 				url: 'https://api.openai.com/v1/audio/transcriptions',
 				headers: {
 					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
 				},
 				schema: whisperApiResponseSchema,
-				formData,
 			});
-
-			if (!transcriptionResult.ok) {
-				return HttpServiceErrIntoTranscriptionServiceErr(transcriptionResult);
+			if (!postResponseResult.ok) {
+				return HttpServiceErrIntoTranscriptionServiceErr(postResponseResult);
 			}
-
-			const whisperApiResponse = transcriptionResult.data;
+			const whisperApiResponse = postResponseResult.data;
 			if ('error' in whisperApiResponse) {
 				return TranscriptionServiceErr({
 					title: 'Server error from Whisper API',
@@ -92,42 +84,7 @@ export function createTranscriptionServiceWhisper({
 					},
 				});
 			}
-
-			const transcribedText = whisperApiResponse.text.trim();
-
-			// Process with GPT
-			const gptResponse = await HttpService.post({
-				url: 'https://api.openai.com/v1/chat/completions',
-				headers: {
-					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify({
-					model: 'gpt-3.5-turbo',
-					messages: [
-						{
-							role: 'system',
-							content: options.prompt || 'Process this text and improve its clarity and coherence.'
-						},
-						{
-							role: 'user',
-							content: transcribedText
-						}
-					],
-					temperature: options.temperature ? parseFloat(options.temperature) : 0.7
-				}),
-			});
-
-			if (!gptResponse.ok) {
-				return TranscriptionServiceErr({
-					title: 'GPT Processing Error',
-					description: `Failed to process text with GPT: ${gptResponse.error}`,
-					action: { type: 'more-details', error: gptResponse.error },
-				});
-			}
-
-			const processedText = gptResponse.data.choices[0].message.content.trim();
-			return Ok(processedText);
+			return Ok(whisperApiResponse.text.trim());
 		},
 	};
 }
