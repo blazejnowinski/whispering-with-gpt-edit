@@ -8,7 +8,7 @@ import { Ok } from '@epicenterhq/result';
 export type GptService = ReturnType<typeof createGptService>;
 
 export function createGptService({ HttpService }: { HttpService: HttpService }) {
-  return {
+  const service = {
     process: async (text: string): Promise<TranscriptionServiceResult<string>> => {
       const apiKey = settings.value['transcription.openAi.apiKey'];
       
@@ -51,6 +51,10 @@ export function createGptService({ HttpService }: { HttpService: HttpService }) 
       }
 
       return Ok(postResponseResult.data.choices[0].message.content.trim());
-    },
+    }
   };
+
+  return service;
 }
+
+export default createGptService;
