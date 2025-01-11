@@ -90,6 +90,12 @@ export function createTranscriptionServiceWhisper({
 			// Process with GPT if prompt is provided
 			if (settings.value['transcription.chatGptPrompt']) {
 				const controller = new AbortController();
+				const cleanup = () => {
+					controller.abort();
+				};
+				
+				// Clean up on REPL stop
+				window.addEventListener('beforeunload', cleanup);
 				try {
 					const gptResponse = await HttpService.post({
 						signal: controller.signal,
@@ -147,6 +153,7 @@ export function createTranscriptionServiceWhisper({
 
 					finalText = gptResponse.data.choices[0].message.content.trim();
 				} catch (error) {
+					window.removeEventListener('beforeunload', cleanup);
 					if (error.name === 'AbortError') {
 						return TranscriptionServiceErr({
 							title: 'GPT Processing Cancelled',
