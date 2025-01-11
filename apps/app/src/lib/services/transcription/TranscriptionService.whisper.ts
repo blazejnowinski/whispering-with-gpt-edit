@@ -84,7 +84,53 @@ export function createTranscriptionServiceWhisper({
 					},
 				});
 			}
-			return Ok(whisperApiResponse.text.trim());
+			let finalText = whisperApiResponse.text.trim();
+
+			// Process with GPT if prompt is provided
+			if (settings.value['transcription.chatGptPrompt']) {
+				const gptResponse = await HttpService.post({
+					url: 'https://api.openai.com/v1/chat/completions',
+					headers: {
+						'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+						'Content-Type': 'application/json'
+					},
+					schema: z.object({
+						choices: z.array(z.object({
+							message: z.object({
+								content: z.string()
+							})
+						}))
+					}),
+					body: {
+						model: 'gpt-4',
+						messages: [
+							{
+								role: 'system',
+								content: settings.value['transcription.chatGptPrompt']
+							},
+							{
+								role: 'user',
+								content: finalText
+							}
+						]
+					}
+				});
+
+				if (!gptResponse.ok) {
+					return TranscriptionServiceErr({
+						title: 'GPT Processing Error',
+						description: 'Failed to process text with GPT-4',
+						action: {
+							type: 'more-details',
+							error: gptResponse.error.message
+						}
+					});
+				}
+
+				finalText = gptResponse.data.choices[0].message.content.trim();
+			}
+
+			return Ok(finalText);
 		},
 	};
 }
