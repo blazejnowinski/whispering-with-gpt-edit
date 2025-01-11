@@ -20,7 +20,9 @@
 	let isProcessing = false;
 
 	async function handleProcessWithGpt(transcribedText: string) {
+		console.log('handleProcessWithGpt called with text:', transcribedText);
 		if (!transcribedText) {
+			console.log('No transcribed text found');
 			toast.error({
 				title: 'No Text to Process',
 				description: 'Please transcribe some text first'
@@ -31,8 +33,12 @@
 		isProcessing = true;
 		try {
 			const prompt = settings.value['transcription.prompt'];
+			console.log('Using prompt:', prompt);
+			console.log('Calling processWithGpt...');
 			gptOutput = await processWithGpt(transcribedText, prompt);
+			console.log('GPT response received:', gptOutput);
 		} catch (error) {
+			console.error('GPT processing error:', error);
 			toast.error({
 				title: 'GPT Processing Failed',
 				description: error.message

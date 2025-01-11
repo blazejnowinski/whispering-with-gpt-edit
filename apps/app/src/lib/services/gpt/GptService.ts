@@ -13,7 +13,9 @@ const gptResponseSchema = z.object({
 });
 
 export async function processWithGpt(text: string, prompt: string): Promise<string> {
+  console.log('processWithGpt called with text length:', text.length);
   const apiKey = settings.value['transcription.openAi.apiKey'];
+  console.log('API key present:', !!apiKey);
   
   if (!apiKey.startsWith('sk-')) {
     throw TranscriptionServiceErr({
