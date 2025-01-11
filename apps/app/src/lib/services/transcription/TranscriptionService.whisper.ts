@@ -87,6 +87,10 @@ export function createTranscriptionServiceWhisper({
 			}
 
 			const transcribedText = whisperApiResponse.text.trim();
+			
+			if (!transcribedText) {
+				return Ok(''); // Return empty string if there's no text to process
+			}
 
 			// Second API call to GPT for processing
 			const gptPayload = {
