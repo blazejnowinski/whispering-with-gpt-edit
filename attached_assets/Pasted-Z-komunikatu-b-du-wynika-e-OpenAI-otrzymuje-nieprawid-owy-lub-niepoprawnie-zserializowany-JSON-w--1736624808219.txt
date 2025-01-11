@@ -1,0 +1,75 @@
+Z komunikatu błędu wynika, że OpenAI otrzymuje nieprawidłowy lub niepoprawnie zserializowany JSON w polu body żądania. Oznacza to, że w fetchu (lub innym kliencie HTTP) musisz zadbać o:
+
+Poprawne zserializowanie obiektu do JSON-a (zawsze używaj JSON.stringify(...) w polu body).
+Odpowiednie nagłówki – zwłaszcza Content-Type: "application/json" i Authorization: "Bearer <TWÓJ_KLUCZ>".
+Poniżej przykładowy minimalny kod, który poprawnie wysyła zapytanie do OpenAI za pomocą fetch. Nie jest to oczywiście cały Twój kod (ten od transkrypcji itp.), ale kluczowy fragment, który musisz zastosować, by uniknąć błędu 400 o niepoprawnym JSON-ie:
+
+js
+Skopiuj kod
+async function callOpenAIGPT(transcribedText) {
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${YOUR_OPENAI_API_KEY}`, // wstaw swój klucz
+      },
+      body: JSON.stringify({
+        model: 'gpt-3.5-turbo', // lub gpt-4, jeśli masz dostęp
+        messages: [
+          { role: 'system', content: 'You are a helpful assistant that translates from Polish to English.' },
+          { role: 'user', content: transcribedText }
+        ],
+        temperature: 0.3 // przykład, możesz dobrać parametry wg potrzeb
+      }),
+    });
+
+    if (!response.ok) {
+      // Odczyt błędu ze zwróconego JSON-a
+      const errorData = await response.json();
+      const errMsg = errorData?.error?.message || 'Unknown error';
+      throw new Error(`OpenAI returned an error (${response.status}): ${errMsg}`);
+    }
+
+    const data = await response.json();
+    // data.choices[0].message.content — tutaj masz wynik
+    console.log('OpenAI GPT response:', data);
+    return data;
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    throw error;
+  }
+}
+Kluczowe punkty:
+body: JSON.stringify(...)
+Jeśli przekażesz zwykły obiekt do body, fetch nie zserializuje go sam automatycznie do poprawnego JSON-a. Musisz to zrobić ręcznie.
+
+Content-Type: "application/json"
+Bez tego nagłówka OpenAI zakłada, że przychodzi coś innego niż JSON.
+
+Klucz w nagłówku Authorization
+Upewnij się, że przekazujesz poprawny klucz API (Bearer <twój_klucz>).
+
+Poprawna struktura
+ChatCompletion wymaga m.in. klucza messages (tablica), a każda wiadomość musi mieć role i content.
+
+Model
+Jeśli jeszcze nie masz uprawnień do GPT-4, użyj gpt-3.5-turbo.
+
+Spradź console.log / console.error
+Zawsze warto wyświetlić response.status i ewentualnie response.json() przy błędzie, żeby zobaczyć, co zwraca OpenAI.
+
+Dopilnuj, aby w kodzie, który wykonuje request (może to być w akcji uruchamianej po zakończeniu transkrypcji), rzeczywiście było wywołanie w stylu powyższego przykładu. Jeśli gdzieś przekazujesz obiekt w formie body: { ... } bez JSON.stringify, to OpenAI będzie zwracać błąd 400.
+
+Dlaczego widzisz błąd 400 o niepoprawnym JSON-ie?
+OpenAI zwraca:
+
+"We could not parse the JSON body of your request..."
+
+…co oznacza, że otrzymał niepoprawną treść w polu body. Najczęstsza przyczyna to właśnie brak JSON.stringify, błędny nagłówek Content-Type albo przekazywanie parametru w formacie, którego OpenAI nie rozpoznaje jako poprawny JSON.
+
+Zaimplementowanie powyższego powinno rozwiązać problem z błędem HTTP 400. Powodzenia!
+
+
+
+
