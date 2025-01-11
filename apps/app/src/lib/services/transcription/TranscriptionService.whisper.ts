@@ -84,7 +84,42 @@ export function createTranscriptionServiceWhisper({
 					},
 				});
 			}
-			return Ok(whisperApiResponse.text.trim());
+
+			const transcribedText = whisperApiResponse.text.trim();
+
+			// Second API call to GPT for processing
+			const gptResponse = await HttpService.post({
+				url: 'https://api.openai.com/v1/chat/completions',
+				headers: {
+					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+					'Content-Type': 'application/json',
+				},
+				body: JSON.stringify({
+					model: 'gpt-3.5-turbo',
+					messages: [
+						{
+							role: 'system',
+							content: options.prompt || 'Process this text and improve its clarity and coherence.'
+						},
+						{
+							role: 'user',
+							content: transcribedText
+						}
+					],
+					temperature: options.temperature ? parseFloat(options.temperature) : 0.7,
+				}),
+			});
+
+			if (!gptResponse.ok) {
+				return TranscriptionServiceErr({
+					title: 'GPT Processing Error',
+					description: `Failed to process text with GPT: ${gptResponse.error}`,
+					action: { type: 'more-details', error: gptResponse.error },
+				});
+			}
+
+			const processedText = gptResponse.data.choices[0].message.content.trim();
+			return Ok(processedText);
 		},
 	};
 }
