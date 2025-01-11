@@ -35,7 +35,8 @@
 			const prompt = settings.value['transcription.prompt'];
 			console.log('Using prompt:', prompt);
 			console.log('Calling processWithGpt...');
-			gptOutput = await processWithGpt(transcribedText, prompt);
+			const textWithPrompt = prompt ? `${prompt}\n\n${transcribedText}` : transcribedText;
+			gptOutput = await processWithGpt(textWithPrompt, prompt);
 			console.log('GPT response received:', gptOutput);
 		} catch (error) {
 			console.error('GPT processing error:', error);
@@ -156,7 +157,10 @@
 			/>
 			<WhisperingButton
 				tooltipContent="Copy bot text"
-				onclick={() => {}}
+				onclick={() => clipboard.copyTextToClipboardWithToast({
+					label: 'bot response',
+					text: gptOutput,
+				})}
 				class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
 			>
 				<ClipboardIcon class="h-6 w-6" />
