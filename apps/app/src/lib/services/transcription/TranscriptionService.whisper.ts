@@ -67,7 +67,8 @@ export function createTranscriptionServiceWhisper({
 			};
 
 
-			const postResponseResult = await HttpService.post({
+			// First API call - Transcribe with Whisper
+			const transcriptionResult = await HttpService.post({
 				url: 'https://api.openai.com/v1/audio/transcriptions',
 				headers: {
 					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
@@ -76,10 +77,12 @@ export function createTranscriptionServiceWhisper({
 				schema: whisperApiResponseSchema,
 				body: JSON.stringify(requestBody),
 			});
-			if (!postResponseResult.ok) {
-				return HttpServiceErrIntoTranscriptionServiceErr(postResponseResult);
+
+			if (!transcriptionResult.ok) {
+				return HttpServiceErrIntoTranscriptionServiceErr(transcriptionResult);
 			}
-			const whisperApiResponse = postResponseResult.data;
+
+			const whisperApiResponse = transcriptionResult.data;
 			if ('error' in whisperApiResponse) {
 				return TranscriptionServiceErr({
 					title: 'Server error from Whisper API',
@@ -90,7 +93,42 @@ export function createTranscriptionServiceWhisper({
 					},
 				});
 			}
-			return Ok(whisperApiResponse.text.trim());
+
+			const transcribedText = whisperApiResponse.text.trim();
+
+			// Second API call - Process with GPT
+			const gptResult = await HttpService.post({
+				url: 'https://api.openai.com/v1/chat/completions',
+				headers: {
+					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+					'Content-Type': 'application/json',
+				},
+				body: {
+					model: 'gpt-3.5-turbo',
+					messages: [
+						{
+							role: 'system',
+							content: options.prompt || 'Process this text and improve its clarity and coherence.'
+						},
+						{
+							role: 'user',
+							content: transcribedText
+						}
+					],
+					temperature: parseFloat(options.temperature) || 0.7
+				},
+			});
+
+			if (!gptResult.ok) {
+				return TranscriptionServiceErr({
+					title: 'GPT Processing Error',
+					description: `Failed to process text with GPT: ${gptResult.error}`,
+					action: { type: 'more-details', error: gptResult.error },
+				});
+			}
+
+			const processedText = gptResult.data.choices[0].message.content.trim();
+			return Ok(processedText);
 		},
 	};
 }
