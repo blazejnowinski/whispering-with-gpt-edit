@@ -118,7 +118,7 @@
 				class="w-full"
 				placeholder="GPT processed text will appear here..."
 				readonly
-				value={$derived(latestRecording.gptProcessedText ?? '')}
+				value={latestRecording.gptProcessedText ?? ''}
 			/>
 			<WhisperingButton
 				tooltipContent="Copy GPT text"
