@@ -28,7 +28,7 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
     });
   }
 
-  const systemPrompt = prompt || settings.value['transcription.childGptPrompt'] || 'You are a helpful assistant. Please respond in the same language as the user\'s input.';
+  const systemPrompt = prompt || settings.value['transcription.chatGptPrompt'] || 'You are a helpful assistant. Please respond in the same language as the user\'s input.';
 
   const messages = [
     { role: 'system', content: systemPrompt },
