@@ -150,24 +150,29 @@
 			</WhisperingButton>
 		</div>
 
-		<div class="flex w-full items-center gap-2 mt-4">
-			<Input
-				id="bot-input"
-				class="w-full"
-				placeholder="Bot interaction text will appear here..."
-				readonly
-				value={gptOutput}
-			/>
-			<WhisperingButton
-				tooltipContent="Copy bot text"
-				onclick={() => clipboard.copyTextToClipboardWithToast({
-					label: 'bot response',
-					text: gptOutput,
-				})}
-				class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
-			>
-				<ClipboardIcon class="h-6 w-6" />
-			</WhisperingButton>
+		<div class="flex w-full flex-col gap-2 mt-4">
+			<div class="flex w-full items-center gap-2">
+				<Input
+					id="bot-input"
+					class="w-full min-h-[60px] text-sm bg-muted/50"
+					placeholder="Bot interaction text will appear here..."
+					readonly
+					value={gptOutput}
+				/>
+				<WhisperingButton
+					tooltipContent="Copy bot text"
+					onclick={() => clipboard.copyTextToClipboardWithToast({
+						label: 'bot response',
+						text: gptOutput,
+					})}
+					class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
+				>
+					<ClipboardIcon class="h-6 w-6" />
+				</WhisperingButton>
+			</div>
+			{#if isProcessing}
+				<div class="text-xs text-muted-foreground">Processing response...</div>
+			{/if}
 		</div>
 		<WhisperingButton
 			tooltipContent="Start bot interaction"
