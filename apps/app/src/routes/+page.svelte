@@ -15,9 +15,12 @@
 	import { onDestroy } from 'svelte';
 	import { processWithGpt } from '$lib/services/gpt/GptService';
 	import { toast } from '$lib/utils/toast';
+	import { writable } from 'svelte/store'; // Added import for writable store
 
-	let gptOutput = '';
-	let isProcessing = false;
+	let gptOutput = $state(''); // Initialize with empty string from the store
+	let isProcessing = $state(false); // Initialize with false from the store
+	const state = writable({ gptOutput: '', isProcessing: false }); //creating writable store
+
 
 	async function handleProcessWithGpt(transcribedText: string) {
 		console.log('handleProcessWithGpt called with text:', transcribedText);
@@ -35,8 +38,10 @@
 			const prompt = settings.value['transcription.prompt'];
 			console.log('Using prompt:', prompt);
 			console.log('Calling processWithGpt...');
-			gptOutput = await processWithGpt(transcribedText, prompt || '');
-			console.log('GPT response received:', gptOutput);
+			const response = await processWithGpt(transcribedText, prompt || '');
+			console.log('GPT response received:', response);
+			gptOutput = response; // Assign the response to gptOutput
+			state.update(s => ({...s, gptOutput: response }));
 			toast.success({
 				title: 'GPT Processing Complete',
 				description: 'Response received from GPT'
@@ -49,6 +54,7 @@
 			});
 		} finally {
 			isProcessing = false;
+			state.update(s => ({...s, isProcessing: false }));
 		}
 	}
 
@@ -157,7 +163,7 @@
 					class="w-full min-h-[60px] text-sm bg-muted/50"
 					placeholder="Bot interaction text will appear here..."
 					readonly
-					value={gptOutput}
+					bind:value={gptOutput}
 				/>
 				<WhisperingButton
 					tooltipContent="Copy bot text"
