@@ -1,0 +1,116 @@
+Ten błąd oznacza, że **OpenAI nie otrzymuje poprawnego JSON-a** w polu `body` Twojego żądania. Najczęstszą przyczyną (zwłaszcza przy integracjach w JS/TS) jest brak użycia `JSON.stringify(...)` lub niepoprawne formatowanie danych, które przekazujesz do `fetch/axios`.
+
+## Jak sprawdzić, skąd bierze się błąd?
+
+1. **Zrób log przed wysłaniem**  
+   Zanim wywołasz `fetch(…)` czy axios, wstaw `console.log('Body:', JSON.stringify(yourDataObject, null, 2));` i zobacz w konsoli, czy powstaje **poprawny** JSON:
+   - Czy nie ma żadnych `undefined`?
+   - Czy pola takie jak `messages`, `role`, `content` zawierają prawidłowe wartości (ciągi znaków, nie obiekty-funkcje itp.)?
+
+2. **Upewnij się, że ustawiasz odpowiednie nagłówki**  
+   ```js
+   headers: {
+     'Content-Type': 'application/json',
+     'Authorization': `Bearer ${API_KEY}`
+   }
+   ```
+   Brak `Content-Type: 'application/json'` lub przekazanie niewłaściwego typu (np. `multipart/form-data`) uniemożliwi poprawne odczytanie JSON-a przez OpenAI.
+
+3. **Upewnij się, że naprawdę przekazujesz JSON, a nie np. FormData**  
+   Jeśli używasz czegoś takiego:
+   ```js
+   const formData = new FormData();
+   formData.append('messages', JSON.stringify([...]));
+   // ...
+   body: formData
+   ```
+   – to z perspektywy API nie będzie to JSON. Aby OpenAI przyjęło te dane jako JSON, musisz użyć zwykłego obiektu + `JSON.stringify` go w `body`, a w nagłówku `Content-Type: 'application/json'`.
+
+4. **Zadbaj o poprawną strukturę `body`**  
+   Dla `chat/completions` minimalne wymagane pola to:
+   ```json
+   {
+     "model": "gpt-3.5-turbo",
+     "messages": [
+       { "role": "system", "content": "You are a helpful assistant..." },
+       { "role": "user", "content": "Hello!" }
+     ]
+   }
+   ```
+   Błąd wystąpi też, jeśli np. przekażesz:
+   - `model` spoza listy dostępnych w OpenAI (choć to wtedy raczej zwróci 400 z innym komunikatem).  
+   - `messages` w formie, która nie jest tablicą (np. obiekt zamiast tablicy).  
+   - Puste klucze, dziwne wartości.  
+
+5. **Sprawdź, czy do `fetch`/`axios` nie przekazujesz w polu `body` czegoś w stylu `JSON.stringify("[object Object]")`**  
+   Jeśli robisz np.:
+   ```js
+   const payload = { model: 'gpt-3.5-turbo', messages: [...] };
+   // ...
+   body: JSON.stringify(payload.toString())
+   ```
+   – to w efekcie wyślesz zwykły napis `"[object Object]"`, a nie poprawny JSON.  
+   Poprawnie powinno być:  
+   ```js
+   body: JSON.stringify(payload)
+   ```
+
+---
+
+### Przykładowy kod, który powinien zadziałać:
+
+```js
+async function callOpenAIGPT(transcribedText) {
+  const openAiKey = 'sk-...'; // wstaw swój klucz
+
+  const payload = {
+    model: 'gpt-3.5-turbo',
+    messages: [
+      { role: 'system', content: 'You are a helpful assistant...' },
+      { role: 'user', content: transcribedText }
+    ],
+    temperature: 0.3
+  };
+
+  console.log('Payload being sent:', payload);
+  console.log('Stringified:', JSON.stringify(payload, null, 2));
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${openAiKey}`
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      // Pobierz i wyświetl przyczynę błędu
+      const errorData = await response.json();
+      console.error('OpenAI error data:', errorData);
+      throw new Error(
+        `OpenAI returned an error (${response.status}): ${errorData?.error?.message || 'Unknown error'}`
+      );
+    }
+
+    const data = await response.json();
+    console.log('OpenAI GPT response:', data);
+    // data.choices[0].message.content – tu jest finalny tekst
+    return data;
+  } catch (error) {
+    console.error('Error calling OpenAI API:', error);
+    throw error;
+  }
+}
+```
+
+---
+
+## Podsumowanie
+
+- **Błąd 400** z komunikatem, że nie można sparsować JSON-a, oznacza zawsze problem z treścią żądania (niepoprawnie sformatowany JSON, brak `JSON.stringify`, niewłaściwe nagłówki itp.).  
+- Najłatwiejszą metodą debugowania jest wyświetlenie w konsoli tego, co **naprawdę** przekazujesz do `fetch/axios` przed wywołaniem API. Zobacz, czy jest to poprawny JSON, a nie coś w rodzaju `[object Object]` czy pusty string.  
+- Ustaw poprawny `Content-Type: 'application/json'` i **zawsze** używaj `JSON.stringify` na obiekcie, który przekazujesz w polu `body`.  
+
+Taka procedura praktycznie zawsze eliminuje ten typ błędu z OpenAI. Powodzenia!
