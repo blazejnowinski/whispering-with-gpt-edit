@@ -212,3 +212,52 @@
 		</p>
 	</div>
 </main>
+<script>
+import { processWithGpt } from '$lib/services/gpt/GptService';
+import { settings } from '$lib/stores/settings.svelte.js';
+import { toast } from '$lib/utils/toast';
+
+let gptOutput = '';
+let isProcessing = false;
+
+async function handleProcessWithGpt(transcribedText: string) {
+  if (!transcribedText) {
+    toast.error({
+      title: 'No Text to Process',
+      description: 'Please transcribe some text first'
+    });
+    return;
+  }
+
+  isProcessing = true;
+  try {
+    const prompt = settings.value['transcription.prompt'];
+    gptOutput = await processWithGpt(transcribedText, prompt);
+  } catch (error) {
+    toast.error({
+      title: 'GPT Processing Failed',
+      description: error.message
+    });
+  } finally {
+    isProcessing = false;
+  }
+}
+</script>
+
+<!-- Add this near your transcription output -->
+<div class="flex flex-col gap-4">
+  <button 
+    class="btn" 
+    on:click={() => handleProcessWithGpt(transcribedText)}
+    disabled={isProcessing}
+  >
+    {isProcessing ? 'Processing...' : 'Process with GPT'}
+  </button>
+
+  {#if gptOutput}
+    <div class="p-4 bg-card text-card-foreground rounded-lg">
+      <h3 class="text-lg font-semibold mb-2">GPT Output</h3>
+      <p class="whitespace-pre-wrap">{gptOutput}</p>
+    </div>
+  {/if}
+</div>
