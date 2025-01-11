@@ -5,6 +5,8 @@ import type { TranscriptionServiceResult } from '../transcription/TranscriptionS
 import { TranscriptionServiceErr, HttpServiceErrIntoTranscriptionServiceErr } from '../transcription/TranscriptionService';
 import { Ok } from '@epicenterhq/result';
 
+export type GptService = ReturnType<typeof createGptService>;
+
 export function createGptService({ HttpService }: { HttpService: HttpService }) {
   return {
     process: async (text: string): Promise<TranscriptionServiceResult<string>> => {
