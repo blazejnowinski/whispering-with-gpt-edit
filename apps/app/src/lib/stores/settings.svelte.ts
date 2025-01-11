@@ -119,20 +119,26 @@ export const registerShortcuts = createRegisterShortcuts();
 function createRegisterShortcuts() {
 	const jobQueue = createJobQueue<RegisterShortcutJob>();
 
-	const initialSilentJob = async () => {
-		unregisterAllLocalShortcuts();
-		await unregisterAllGlobalShortcuts();
-		registerLocalShortcut({
-			shortcut: settings.value['shortcuts.currentLocalShortcut'],
-			callback: recorder.toggleRecordingWithToast,
-		});
-		await registerGlobalShortcut({
-			shortcut: settings.value['shortcuts.currentGlobalShortcut'],
-			callback: recorder.toggleRecordingWithToast,
-		});
-	};
+  let recordingCallback: (() => void) | null = null;
 
-	jobQueue.addJobToQueue(initialSilentJob());
+  export function initializeShortcuts(toggleRecordingFn: () => void) {
+    recordingCallback = toggleRecordingFn;
+    const initialSilentJob = async () => {
+      unregisterAllLocalShortcuts();
+      await unregisterAllGlobalShortcuts();
+      if (recordingCallback) {
+        registerLocalShortcut({
+          shortcut: settings.value['shortcuts.currentLocalShortcut'],
+          callback: recordingCallback,
+        });
+        await registerGlobalShortcut({
+          shortcut: settings.value['shortcuts.currentGlobalShortcut'],
+          callback: recordingCallback,
+        });
+      }
+    };
+    jobQueue.addJobToQueue(initialSilentJob());
+  }
 
 	return {
 		registerLocalShortcut: ({

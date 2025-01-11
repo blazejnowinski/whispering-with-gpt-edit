@@ -16,6 +16,8 @@ import {
 import { nanoid } from 'nanoid/non-secure';
 
 export const recorder = createRecorder();
+import { initializeShortcuts } from './settings.svelte';
+initializeShortcuts(recorder.toggleRecordingWithToast);
 
 function createRecorder() {
 	let recorderState = $state<WhisperingRecordingState>('IDLE');
