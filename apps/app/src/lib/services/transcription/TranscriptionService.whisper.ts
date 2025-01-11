@@ -92,10 +92,13 @@ export function createTranscriptionServiceWhisper({
 				const controller = new AbortController();
 				const cleanup = () => {
 					controller.abort();
+					window.removeEventListener('beforeunload', cleanup);
+					window.removeEventListener('visibilitychange', cleanup);
 				};
 				
-				// Clean up on REPL stop
+				// Clean up on REPL stop or tab visibility change
 				window.addEventListener('beforeunload', cleanup);
+				window.addEventListener('visibilitychange', cleanup);
 				try {
 					const gptResponse = await HttpService.post({
 						signal: controller.signal,
@@ -154,7 +157,8 @@ export function createTranscriptionServiceWhisper({
 					finalText = gptResponse.data.choices[0].message.content.trim();
 				} catch (error) {
 					window.removeEventListener('beforeunload', cleanup);
-					if (error.name === 'AbortError') {
+					if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+						cleanup();
 						return TranscriptionServiceErr({
 							title: 'GPT Processing Cancelled',
 							description: 'The GPT processing was cancelled',
