@@ -66,8 +66,8 @@ export function createTranscriptionServiceWhisper({
 				formData,
 				url: 'https://api.openai.com/v1/audio/transcriptions',
 				headers: {
-					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
-					'Content-Type': 'application/json'
+					'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+					// Don't set Content-Type for FormData, browser will set correct boundary
 				},
 				schema: whisperApiResponseSchema,
 			});
@@ -89,26 +89,28 @@ export function createTranscriptionServiceWhisper({
 			const transcribedText = whisperApiResponse.text.trim();
 
 			// Second API call to GPT for processing
+			const gptPayload = {
+				model: 'gpt-3.5-turbo',
+				messages: [
+					{
+						role: 'system',
+						content: options.prompt || 'Process this text and improve its clarity and coherence.'
+					},
+					{
+						role: 'user',
+						content: transcribedText
+					}
+				],
+				temperature: parseFloat(options.temperature) || 0.7
+			};
+
 			const gptResult = await HttpService.post({
 				url: 'https://api.openai.com/v1/chat/completions',
 				headers: {
 					'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({
-					model: 'gpt-3.5-turbo',
-					messages: [
-						{
-							role: 'system',
-							content: options.prompt || 'Process this text and improve its clarity and coherence.'
-						},
-						{
-							role: 'user',
-							content: transcribedText
-						}
-					],
-					temperature: parseFloat(options.temperature) || 0.7
-				}),
+				body: JSON.stringify(gptPayload),
 			});
 
 			if (!gptResult.ok) {
