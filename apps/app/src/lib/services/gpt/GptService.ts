@@ -1,3 +1,4 @@
+
 import type { HttpService } from '../http/HttpService';
 import { z } from 'zod';
 import { settings } from '$lib/stores/settings.svelte.js';
@@ -34,8 +35,6 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
     { role: 'system', content: systemPrompt },
     { role: 'user', content: text }
   ];
-
-  const messageHistory = $state([]);
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
