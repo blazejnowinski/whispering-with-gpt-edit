@@ -37,6 +37,10 @@
 			console.log('Calling processWithGpt...');
 			gptOutput = await processWithGpt(transcribedText, prompt || '');
 			console.log('GPT response received:', gptOutput);
+			toast.success({
+				title: 'GPT Processing Complete',
+				description: 'Response received from GPT'
+			});
 		} catch (error) {
 			console.error('GPT processing error:', error);
 			toast.error({

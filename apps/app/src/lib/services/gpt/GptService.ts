@@ -30,8 +30,8 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
   }
 
   const messages = [
-    { role: 'system', content: text },
-    { role: 'user', content: prompt }
+    { role: 'system', content: prompt },
+    { role: 'user', content: text }
   ];
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -51,7 +51,7 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
   if (!response.ok) {
     throw TranscriptionServiceErr({
       title: 'GPT Processing Failed',
-      description: `Failed to process text with GPT-4O mini: ${response.statusText}`,
+      description: `Failed to process text with GPT: ${response.statusText}`,
       action: { type: 'more-details', error: await response.text() }
     });
   }
