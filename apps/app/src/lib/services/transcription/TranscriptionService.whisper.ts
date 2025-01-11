@@ -1,7 +1,6 @@
 import { settings } from '$lib/stores/settings.svelte.js';
 import { getExtensionFromAudioBlob } from '$lib/utils';
 import { Ok } from '@epicenterhq/result';
-import { z } from 'zod';
 import type { HttpService } from '../http/HttpService';
 import {
 	HttpServiceErrIntoTranscriptionServiceErr,
@@ -85,102 +84,7 @@ export function createTranscriptionServiceWhisper({
 					},
 				});
 			}
-			let finalText = whisperApiResponse.text.trim();
-
-			// Process with GPT if prompt is provided
-			if (settings.value['transcription.chatGptPrompt']) {
-				const controller = new AbortController();
-				const cleanup = () => {
-					controller.abort();
-					window.removeEventListener('beforeunload', cleanup);
-					window.removeEventListener('visibilitychange', cleanup);
-				};
-				
-				// Clean up on REPL stop or tab visibility change
-				window.addEventListener('beforeunload', cleanup);
-				window.addEventListener('visibilitychange', cleanup);
-				try {
-					const gptResponse = await HttpService.post({
-						signal: controller.signal,
-						url: 'https://api.openai.com/v1/chat/completions',
-						headers: {
-							'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
-							'Content-Type': 'application/json'
-						},
-						schema: z.object({
-							choices: z.array(z.object({
-								message: z.object({
-									content: z.string()
-								})
-							})).min(1)
-						}),
-						body: JSON.stringify({
-							model: 'gpt-4',
-							messages: [
-								{
-									role: 'system',
-									content: settings.value['transcription.chatGptPrompt']
-								},
-								{
-									role: 'user',
-									content: finalText
-								}
-							],
-							temperature: parseFloat(settings.value['transcription.temperature']) || 0.7
-						})
-					});
-
-					if (!gptResponse.ok) {
-						console.error('GPT processing error:', gptResponse.error);
-						return TranscriptionServiceErr({
-							title: 'GPT Processing Error',
-							description: 'Failed to process text with GPT-4. Please check your API key and settings.',
-							action: {
-								type: 'link',
-								label: 'Go to settings',
-								goto: '/settings/transcription'
-							}
-						});
-					}
-
-					if (!gptResponse.data.choices?.[0]?.message?.content) {
-						return TranscriptionServiceErr({
-							title: 'Invalid GPT Response',
-							description: 'GPT-4 returned an unexpected response format',
-							action: {
-								type: 'more-details',
-								error: 'Missing content in response'
-							}
-						});
-					}
-
-					finalText = gptResponse.data.choices[0].message.content.trim();
-				} catch (error) {
-					window.removeEventListener('beforeunload', cleanup);
-					if (error.name === 'AbortError' || error.message?.includes('aborted')) {
-						cleanup();
-						return TranscriptionServiceErr({
-							title: 'GPT Processing Cancelled',
-							description: 'The GPT processing was cancelled',
-							action: {
-								type: 'more-details',
-								error: 'Request aborted'
-							}
-						});
-					}
-					console.error('Error during GPT processing:', error);
-					return TranscriptionServiceErr({
-						title: 'GPT Processing Error',
-						description: 'An unexpected error occurred during GPT processing',
-						action: {
-							type: 'more-details',
-							error: error instanceof Error ? error.message : String(error)
-						}
-					});
-				}
-			}
-
-			return Ok(finalText);
+			return Ok(whisperApiResponse.text.trim());
 		},
 	};
 }
