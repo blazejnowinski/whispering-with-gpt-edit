@@ -89,46 +89,71 @@ export function createTranscriptionServiceWhisper({
 
 			// Process with GPT if prompt is provided
 			if (settings.value['transcription.chatGptPrompt']) {
-				const gptResponse = await HttpService.post({
-					url: 'https://api.openai.com/v1/chat/completions',
-					headers: {
-						'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
-						'Content-Type': 'application/json'
-					},
-					schema: z.object({
-						choices: z.array(z.object({
-							message: z.object({
-								content: z.string()
-							})
-						}))
-					}),
-					body: {
-						model: 'gpt-4',
-						messages: [
-							{
-								role: 'system',
-								content: settings.value['transcription.chatGptPrompt']
-							},
-							{
-								role: 'user',
-								content: finalText
-							}
-						]
-					}
-				});
+				try {
+					const gptResponse = await HttpService.post({
+						url: 'https://api.openai.com/v1/chat/completions',
+						headers: {
+							'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+							'Content-Type': 'application/json'
+						},
+						schema: z.object({
+							choices: z.array(z.object({
+								message: z.object({
+									content: z.string()
+								})
+							})).min(1)
+						}),
+						body: {
+							model: 'gpt-4',
+							messages: [
+								{
+									role: 'system',
+									content: settings.value['transcription.chatGptPrompt']
+								},
+								{
+									role: 'user',
+									content: finalText
+								}
+							],
+							temperature: parseFloat(settings.value['transcription.temperature']) || 0.7
+						}
+					});
 
-				if (!gptResponse.ok) {
+					if (!gptResponse.ok) {
+						console.error('GPT processing error:', gptResponse.error);
+						return TranscriptionServiceErr({
+							title: 'GPT Processing Error',
+							description: `Failed to process text with GPT-4: ${gptResponse.error.message}`,
+							action: {
+								type: 'more-details',
+								error: gptResponse.error.message
+							}
+						});
+					}
+
+					if (!gptResponse.data.choices?.[0]?.message?.content) {
+						return TranscriptionServiceErr({
+							title: 'Invalid GPT Response',
+							description: 'GPT-4 returned an unexpected response format',
+							action: {
+								type: 'more-details',
+								error: 'Missing content in response'
+							}
+						});
+					}
+
+					finalText = gptResponse.data.choices[0].message.content.trim();
+				} catch (error) {
+					console.error('Error during GPT processing:', error);
 					return TranscriptionServiceErr({
 						title: 'GPT Processing Error',
-						description: 'Failed to process text with GPT-4',
+						description: 'An unexpected error occurred during GPT processing',
 						action: {
 							type: 'more-details',
-							error: gptResponse.error.message
+							error: error instanceof Error ? error.message : String(error)
 						}
 					});
 				}
-
-				finalText = gptResponse.data.choices[0].message.content.trim();
 			}
 
 			return Ok(finalText);
