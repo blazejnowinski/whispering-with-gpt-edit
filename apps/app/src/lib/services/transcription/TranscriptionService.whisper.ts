@@ -89,8 +89,10 @@ export function createTranscriptionServiceWhisper({
 
 			// Process with GPT if prompt is provided
 			if (settings.value['transcription.chatGptPrompt']) {
+				const controller = new AbortController();
 				try {
 					const gptResponse = await HttpService.post({
+						signal: controller.signal,
 						url: 'https://api.openai.com/v1/chat/completions',
 						headers: {
 							'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
@@ -145,6 +147,16 @@ export function createTranscriptionServiceWhisper({
 
 					finalText = gptResponse.data.choices[0].message.content.trim();
 				} catch (error) {
+					if (error.name === 'AbortError') {
+						return TranscriptionServiceErr({
+							title: 'GPT Processing Cancelled',
+							description: 'The GPT processing was cancelled',
+							action: {
+								type: 'more-details',
+								error: 'Request aborted'
+							}
+						});
+					}
 					console.error('Error during GPT processing:', error);
 					return TranscriptionServiceErr({
 						title: 'GPT Processing Error',
