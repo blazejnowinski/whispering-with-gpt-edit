@@ -155,7 +155,7 @@
       <div class="relative w-full">
         <Input
           id="bot-input"
-          class="w-full"
+          class="w-full min-h-[40px] overflow-y-auto text-foreground"
           placeholder="Bot interaction text will appear here..."
           readonly
           value={gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''}
