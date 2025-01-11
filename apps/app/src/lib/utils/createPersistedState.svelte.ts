@@ -179,13 +179,28 @@ export function createPersistedState<TSchema extends z.ZodTypeAny>({
 		});
 	}
 
-	return {
+	const state = {
 		get value() {
 			return value;
 		},
 		set value(newValue: z.infer<TSchema>) {
-			value = newValue;
-			if (!disableLocalStorage) setValueInLocalStorage(newValue);
+			value = schema.parse(newValue);
+			if (!disableLocalStorage) setValueInLocalStorage(value);
 		},
 	};
+	
+	if (!disableLocalStorage) {
+		const storedValue = localStorage.getItem(key);
+		if (storedValue) {
+			try {
+				const parsedValue = JSON.parse(storedValue);
+				state.value = parsedValue;
+			} catch (error) {
+				console.error('Error parsing stored value:', error);
+				state.value = defaultValue;
+			}
+		}
+	}
+	
+	return state;
 }
