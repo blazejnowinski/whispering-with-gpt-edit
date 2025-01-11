@@ -1,4 +1,3 @@
-
 import type { HttpService } from '../http/HttpService';
 import { z } from 'zod';
 import { settings } from '$lib/stores/settings.svelte.js';
@@ -16,7 +15,7 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
   console.log('processWithGpt called with text length:', text.length);
   const apiKey = settings.value['transcription.openAi.apiKey'];
   console.log('API key present:', !!apiKey);
-  
+
   if (!apiKey.startsWith('sk-')) {
     throw TranscriptionServiceErr({
       title: 'Invalid OpenAI API Key',
@@ -29,8 +28,10 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
     });
   }
 
+  const systemPrompt = prompt || settings.value['transcription.childGptPrompt'] || 'You are a helpful assistant. Please respond in the same language as the user\'s input.';
+
   const messages = [
-    { role: 'system', content: prompt },
+    { role: 'system', content: systemPrompt },
     { role: 'user', content: text }
   ];
 
