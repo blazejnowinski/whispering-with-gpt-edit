@@ -160,7 +160,7 @@
 				readonly
 				value={gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''}
 			/>
-        <div class="absolute top-2 right-2"> {/* Position bot icon */}
+        <div class="absolute top-2 right-2"> <!-- Position bot icon -->
           <span class="text-lg">🤖</span>
         </div>
       </div>
