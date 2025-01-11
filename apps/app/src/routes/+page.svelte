@@ -116,51 +116,21 @@
 			<Input
 				id="bot-input"
 				class="w-full"
-				placeholder="GPT processed text will appear here..."
+				placeholder="Bot interaction text will appear here..."
 				readonly
-				value={latestRecording.gptProcessedText ?? ''}
+				value=""
 			/>
 			<WhisperingButton
-				tooltipContent="Copy GPT text"
-				onclick={() => clipboard.copyTextToClipboardWithToast({
-					label: 'GPT processed text',
-					text: latestRecording.gptProcessedText ?? '',
-				})}
+				tooltipContent="Copy bot text"
+				onclick={() => {}}
 				class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
 			>
 				<ClipboardIcon class="h-6 w-6" />
 			</WhisperingButton>
 		</div>
 		<WhisperingButton
-			tooltipContent="Process with GPT"
-			onclick={() => {
-				if (!latestRecording.transcribedText) {
-					toast.error({
-						title: 'No transcription available',
-						description: 'Please record and transcribe some text first.',
-					});
-					return;
-				}
-				toast.promise({
-					promise: services.gpt.process(latestRecording.transcribedText)
-						.then(result => {
-							if (!result.ok) throw result;
-							recordings.updateLatestRecording({
-								gptProcessedText: result.data,
-							});
-							return result.data;
-						}),
-					loading: 'Processing with GPT...',
-					success: (data) => ({
-						title: 'GPT Processing Complete',
-						description: data,
-					}),
-					error: (err) => ({
-						title: 'GPT Processing Error',
-						description: err.error?.message ?? 'Unknown error occurred',
-					}),
-				});
-			}}
+			tooltipContent="Start bot interaction"
+			onclick={() => {}}
 			variant="ghost"
 			class="transform text-4xl hover:scale-110 focus:scale-110"
 		>

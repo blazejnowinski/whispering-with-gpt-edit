@@ -66,12 +66,9 @@ function createServices() {
 		? createPlaySoundServiceDesktop()
 		: createPlaySoundServiceWeb();
 
-	const GptService = createGptService({ HttpService });
-
 	return {
 		transcription: TranscriptionService,
 		recorder: RecorderService,
-		gpt: GptService,
 		sound: {
 			playStartSoundIfEnabled: () => {
 				if (settings.value['sound.playOnStartSuccess']) {
