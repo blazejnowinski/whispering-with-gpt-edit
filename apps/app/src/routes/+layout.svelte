@@ -19,11 +19,10 @@
 	import { recordings } from '$lib/stores/recordings.svelte';
 	import { writable } from 'svelte/store';
 
-	let { children } = $props();
+	const { children } = $props();
 
-	let gptOutput = ''; // Initialize gptOutput
-	let isProcessing = false; // Initialize isProcessing
-	const state = writable({ gptOutput: '', isProcessing: false }); //creating writable store
+	const gptOutput = $state(''); // Initialize gptOutput using rune
+	const isProcessing = $state(false); // Initialize isProcessing using rune
 
 	syncWindowAlwaysOnTopWithRecorderState();
 	closeToTrayIfEnabled();
