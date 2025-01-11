@@ -48,27 +48,33 @@ export function createTranscriptionServiceWhisper({
 					description: `Please upload a file smaller than ${MAX_FILE_SIZE_MB}MB.`,
 				});
 			}
-			const formData = new FormData();
-			formData.append(
-				'file',
-				audioBlob,
-				`recording.${getExtensionFromAudioBlob(audioBlob)}`,
-			);
-			formData.append('model', 'whisper-1');
-			if (options.outputLanguage !== 'auto') {
-				formData.append('language', options.outputLanguage);
-			}
-			if (options.prompt) formData.append('prompt', options.prompt);
-			if (options.temperature)
-				formData.append('temperature', options.temperature);
+			const reader = new FileReader();
+			reader.readAsArrayBuffer(audioBlob);
+			await new Promise(resolve => reader.onload = resolve);
+			const buffer = reader.result as ArrayBuffer;
+			const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+
+			const requestBody = {
+				model: 'whisper-1',
+				audio: {
+					type: 'audio/mp3', //Update with correct audio type if needed
+					data: base64,
+				},
+        language: options.outputLanguage !== 'auto' ? options.outputLanguage : undefined,
+        prompt: options.prompt,
+        temperature: options.temperature,
+
+			};
+
 
 			const postResponseResult = await HttpService.post({
-				formData,
 				url: 'https://api.openai.com/v1/audio/transcriptions',
 				headers: {
 					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+					'Content-Type': 'application/json',
 				},
 				schema: whisperApiResponseSchema,
+				body: JSON.stringify(requestBody),
 			});
 			if (!postResponseResult.ok) {
 				return HttpServiceErrIntoTranscriptionServiceErr(postResponseResult);
