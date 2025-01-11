@@ -143,21 +143,22 @@ export function createPersistedState<TSchema extends z.ZodTypeAny>({
 		if (!parseJsonResult.ok) return defaultValue;
 		const valueFromStorageMaybeInvalid = parseJsonResult.data;
 
+		// First try parsing the stored value directly
 		const valueFromStorageResult = schema.safeParse(
 			valueFromStorageMaybeInvalid,
 		);
 		if (valueFromStorageResult.success) return valueFromStorageResult.data;
 
-		const resolvedValue = resolveParseErrorStrategy({
-			key,
-			valueFromStorage: valueFromStorageMaybeInvalid,
-			defaultValue,
-			schema,
-			error: valueFromStorageResult.error,
-		});
+		// If that fails, try merging with default values first
+		const mergedValue = {
+			...defaultValue,
+			...valueFromStorageMaybeInvalid
+		};
+		const mergedValueResult = schema.safeParse(mergedValue);
+		if (mergedValueResult.success) return mergedValueResult.data;
 
-		setValueInLocalStorage(resolvedValue);
-		return resolvedValue;
+		return defaultValue; // Fallback to default if merging also fails
+
 	};
 
 	if (!disableLocalStorage) {
