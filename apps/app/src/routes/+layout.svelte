@@ -17,12 +17,8 @@
 	import { RecordingsService } from '$lib/services.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { recordings } from '$lib/stores/recordings.svelte';
-	import { writable } from 'svelte/store';
 
-	const { children } = $props();
-
-	const gptOutput = $state(''); // Initialize gptOutput using rune
-	const isProcessing = $state(false); // Initialize isProcessing using rune
+	let { children } = $props();
 
 	syncWindowAlwaysOnTopWithRecorderState();
 	closeToTrayIfEnabled();
@@ -82,7 +78,7 @@
 </button>
 
 <div class="xxs:flex hidden min-h-screen flex-col items-center gap-2">
-	{@html children}
+	{@render children()}
 </div>
 
 <Toaster

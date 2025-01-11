@@ -15,12 +15,9 @@
 	import { onDestroy } from 'svelte';
 	import { processWithGpt } from '$lib/services/gpt/GptService';
 	import { toast } from '$lib/utils/toast';
-	import { writable } from 'svelte/store'; // Added import for writable store
 
-	let gptOutput = $state(''); // Initialize with empty string from the store
-	let isProcessing = $state(false); // Initialize with false from the store
-	const state = writable({ gptOutput: '', isProcessing: false }); //creating writable store
-
+	let gptOutput = '';
+	let isProcessing = false;
 
 	async function handleProcessWithGpt(transcribedText: string) {
 		console.log('handleProcessWithGpt called with text:', transcribedText);
@@ -38,10 +35,8 @@
 			const prompt = settings.value['transcription.prompt'];
 			console.log('Using prompt:', prompt);
 			console.log('Calling processWithGpt...');
-			const response = await processWithGpt(transcribedText, prompt || '');
-			console.log('GPT response received:', response);
-			gptOutput = response; // Assign the response to gptOutput
-			state.update(s => ({...s, gptOutput: response }));
+			gptOutput = await processWithGpt(transcribedText, prompt || '');
+			console.log('GPT response received:', gptOutput);
 			toast.success({
 				title: 'GPT Processing Complete',
 				description: 'Response received from GPT'
@@ -54,7 +49,6 @@
 			});
 		} finally {
 			isProcessing = false;
-			state.update(s => ({...s, isProcessing: false }));
 		}
 	}
 
@@ -156,29 +150,24 @@
 			</WhisperingButton>
 		</div>
 
-		<div class="flex w-full flex-col gap-2 mt-4">
-			<div class="flex w-full items-center gap-2">
-				<Input
-					id="bot-input"
-					class="w-full min-h-[60px] text-sm bg-muted/50"
-					placeholder="Bot interaction text will appear here..."
-					readonly
-					bind:value={gptOutput}
-				/>
-				<WhisperingButton
-					tooltipContent="Copy bot text"
-					onclick={() => clipboard.copyTextToClipboardWithToast({
-						label: 'bot response',
-						text: gptOutput,
-					})}
-					class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
-				>
-					<ClipboardIcon class="h-6 w-6" />
-				</WhisperingButton>
-			</div>
-			{#if isProcessing}
-				<div class="text-xs text-muted-foreground">Processing response...</div>
-			{/if}
+		<div class="flex w-full items-center gap-2 mt-4">
+			<Input
+				id="bot-input"
+				class="w-full"
+				placeholder="Bot interaction text will appear here..."
+				readonly
+				value={gptOutput}
+			/>
+			<WhisperingButton
+				tooltipContent="Copy bot text"
+				onclick={() => clipboard.copyTextToClipboardWithToast({
+					label: 'bot response',
+					text: gptOutput,
+				})}
+				class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
+			>
+				<ClipboardIcon class="h-6 w-6" />
+			</WhisperingButton>
 		</div>
 		<WhisperingButton
 			tooltipContent="Start bot interaction"
