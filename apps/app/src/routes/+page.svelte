@@ -152,7 +152,7 @@
 				class="w-full"
 				placeholder="Bot interaction text will appear here..."
 				readonly
-				value=""
+				value={gptOutput}
 			/>
 			<WhisperingButton
 				tooltipContent="Copy bot text"
@@ -164,7 +164,7 @@
 		</div>
 		<WhisperingButton
 			tooltipContent="Start bot interaction"
-			onclick={() => {}}
+			onclick={() => handleProcessWithGpt(latestRecording.transcribedText)}
 			variant="ghost"
 			class="transform text-4xl hover:scale-110 focus:scale-110"
 		>
