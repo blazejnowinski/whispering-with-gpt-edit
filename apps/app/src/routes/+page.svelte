@@ -111,6 +111,31 @@
 				{/if}
 			</WhisperingButton>
 		</div>
+
+		<div class="flex w-full items-center gap-2 mt-4">
+			<Input
+				id="bot-input"
+				class="w-full"
+				placeholder="Bot interaction text will appear here..."
+				readonly
+				value=""
+			/>
+			<WhisperingButton
+				tooltipContent="Copy bot text"
+				onclick={() => {}}
+				class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
+			>
+				<ClipboardIcon class="h-6 w-6" />
+			</WhisperingButton>
+		</div>
+		<WhisperingButton
+			tooltipContent="Start bot interaction"
+			onclick={() => {}}
+			variant="ghost"
+			class="transform text-4xl hover:scale-110 focus:scale-110"
+		>
+			🤖
+		</WhisperingButton>
 		{#if blobUrl}
 			<audio
 				style="view-transition-name: {createRecordingViewTransitionName({
