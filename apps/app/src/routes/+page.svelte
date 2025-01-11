@@ -13,6 +13,34 @@
 	import { createRecordingViewTransitionName } from '$lib/utils/createRecordingViewTransitionName';
 	import { Loader2Icon } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
+	import { processWithGpt } from '$lib/services/gpt/GptService';
+	import { toast } from '$lib/utils/toast';
+
+	let gptOutput = '';
+	let isProcessing = false;
+
+	async function handleProcessWithGpt(transcribedText: string) {
+		if (!transcribedText) {
+			toast.error({
+				title: 'No Text to Process',
+				description: 'Please transcribe some text first'
+			});
+			return;
+		}
+
+		isProcessing = true;
+		try {
+			const prompt = settings.value['transcription.prompt'];
+			gptOutput = await processWithGpt(transcribedText, prompt);
+		} catch (error) {
+			toast.error({
+				title: 'GPT Processing Failed',
+				description: error.message
+			});
+		} finally {
+			isProcessing = false;
+		}
+	}
 
 	const latestRecording = $derived<Recording>(
 		recordings.value.at(-1) ?? {
@@ -212,37 +240,7 @@
 		</p>
 	</div>
 </main>
-<script>
-import { processWithGpt } from '$lib/services/gpt/GptService';
-import { settings } from '$lib/stores/settings.svelte.js';
-import { toast } from '$lib/utils/toast';
 
-let gptOutput = '';
-let isProcessing = false;
-
-async function handleProcessWithGpt(transcribedText: string) {
-  if (!transcribedText) {
-    toast.error({
-      title: 'No Text to Process',
-      description: 'Please transcribe some text first'
-    });
-    return;
-  }
-
-  isProcessing = true;
-  try {
-    const prompt = settings.value['transcription.prompt'];
-    gptOutput = await processWithGpt(transcribedText, prompt);
-  } catch (error) {
-    toast.error({
-      title: 'GPT Processing Failed',
-      description: error.message
-    });
-  } finally {
-    isProcessing = false;
-  }
-}
-</script>
 
 <!-- Add this near your transcription output -->
 <div class="flex flex-col gap-4">
