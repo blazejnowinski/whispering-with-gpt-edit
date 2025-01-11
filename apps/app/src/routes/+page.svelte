@@ -35,8 +35,7 @@
 			const prompt = settings.value['transcription.prompt'];
 			console.log('Using prompt:', prompt);
 			console.log('Calling processWithGpt...');
-			const textWithPrompt = prompt ? `${prompt}\n\n${transcribedText}` : transcribedText;
-			gptOutput = await processWithGpt(textWithPrompt, prompt);
+			gptOutput = await processWithGpt(transcribedText, prompt || '');
 			console.log('GPT response received:', gptOutput);
 		} catch (error) {
 			console.error('GPT processing error:', error);

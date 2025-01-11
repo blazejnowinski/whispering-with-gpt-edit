@@ -30,8 +30,8 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
   }
 
   const messages = [
-    { role: 'system', content: prompt },
-    { role: 'user', content: text }
+    { role: 'system', content: text },
+    { role: 'user', content: prompt }
   ];
 
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
