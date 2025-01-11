@@ -123,10 +123,18 @@ export function createPersistedState<TSchema extends z.ZodTypeAny>({
 	let value = $state(defaultValue);
 
 	const setValueInLocalStorage = (newValue: z.infer<TSchema>) => {
+		if (typeof window === 'undefined' || !window.localStorage) {
+			onUpdateError?.(new Error('localStorage is not available'));
+			onUpdateSettled?.();
+			return;
+		}
+
 		try {
-			localStorage.setItem(key, JSON.stringify(newValue));
+			const serialized = JSON.stringify(newValue);
+			localStorage.setItem(key, serialized);
 			onUpdateSuccess?.();
 		} catch (error) {
+			console.error('Error saving to localStorage:', error);
 			onUpdateError?.(error);
 		} finally {
 			onUpdateSettled?.();
