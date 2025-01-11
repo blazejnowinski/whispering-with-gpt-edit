@@ -123,18 +123,10 @@ export function createPersistedState<TSchema extends z.ZodTypeAny>({
 	let value = $state(defaultValue);
 
 	const setValueInLocalStorage = (newValue: z.infer<TSchema>) => {
-		if (typeof window === 'undefined' || !window.localStorage) {
-			onUpdateError?.(new Error('localStorage is not available'));
-			onUpdateSettled?.();
-			return;
-		}
-
 		try {
-			const serialized = JSON.stringify(newValue);
-			localStorage.setItem(key, serialized);
+			localStorage.setItem(key, JSON.stringify(newValue));
 			onUpdateSuccess?.();
 		} catch (error) {
-			console.error('Error saving to localStorage:', error);
 			onUpdateError?.(error);
 		} finally {
 			onUpdateSettled?.();
@@ -179,28 +171,13 @@ export function createPersistedState<TSchema extends z.ZodTypeAny>({
 		});
 	}
 
-	const state = {
+	return {
 		get value() {
 			return value;
 		},
 		set value(newValue: z.infer<TSchema>) {
-			value = schema.parse(newValue);
-			if (!disableLocalStorage) setValueInLocalStorage(value);
+			value = newValue;
+			if (!disableLocalStorage) setValueInLocalStorage(newValue);
 		},
 	};
-	
-	if (!disableLocalStorage) {
-		const storedValue = localStorage.getItem(key);
-		if (storedValue) {
-			try {
-				const parsedValue = JSON.parse(storedValue);
-				state.value = parsedValue;
-			} catch (error) {
-				console.error('Error parsing stored value:', error);
-				state.value = defaultValue;
-			}
-		}
-	}
-	
-	return state;
 }
