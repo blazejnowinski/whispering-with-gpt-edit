@@ -18,10 +18,6 @@
 
   let gptMessages: string[] = [];
   let isProcessing = false;
-  
-  const latestGptMessage = $derived(
-    gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''
-  );
 
   async function handleProcessWithGpt(transcribedText: string) {
     console.log('handleProcessWithGpt called with text:', transcribedText);
@@ -162,8 +158,7 @@
           class="w-full min-h-[40px] overflow-y-auto text-foreground"
           placeholder="Bot interaction text will appear here..."
           readonly
-          bind:value={latestGptMessage}
-          style="color: var(--foreground); min-height: 40px;"
+          value={gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''}
         />
         <div class="absolute top-2 right-2">
           <span class="text-lg">🤖</span>
