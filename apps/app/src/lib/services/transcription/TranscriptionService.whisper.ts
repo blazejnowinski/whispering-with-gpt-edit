@@ -123,10 +123,11 @@ export function createTranscriptionServiceWhisper({
 						console.error('GPT processing error:', gptResponse.error);
 						return TranscriptionServiceErr({
 							title: 'GPT Processing Error',
-							description: `Failed to process text with GPT-4: ${gptResponse.error.message}`,
+							description: 'Failed to process text with GPT-4. Please check your API key and settings.',
 							action: {
-								type: 'more-details',
-								error: gptResponse.error.message
+								type: 'link',
+								label: 'Go to settings',
+								goto: '/settings/transcription'
 							}
 						});
 					}
