@@ -19,7 +19,7 @@
 	import { recordings } from '$lib/stores/recordings.svelte';
 	import { writable } from 'svelte/store';
 
-	let { children } = $props; //Corrected to access props correctly
+	let { children } = $props();
 
 	let gptOutput = ''; // Initialize gptOutput
 	let isProcessing = false; // Initialize isProcessing
