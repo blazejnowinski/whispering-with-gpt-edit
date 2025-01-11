@@ -8,7 +8,9 @@ import { Ok } from '@epicenterhq/result';
 export function createGptService({ HttpService }: { HttpService: HttpService }) {
   return {
     process: async (text: string): Promise<TranscriptionServiceResult<string>> => {
-      if (!settings.value['transcription.openAi.apiKey']) {
+      const apiKey = settings.value['transcription.openAi.apiKey'];
+      
+      if (!apiKey) {
         return TranscriptionServiceErr({
           title: 'OpenAI API Key not provided.',
           description: 'Please enter your OpenAI API key in the settings',
@@ -23,23 +25,23 @@ export function createGptService({ HttpService }: { HttpService: HttpService }) 
       const postResponseResult = await HttpService.post({
         url: 'https://api.openai.com/v1/chat/completions',
         headers: {
-          'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+          'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
-        body: {
-          model: 'gpt-4',
+        body: JSON.stringify({
+          model: 'gpt-3.5-turbo',
           messages: [
             {
               role: 'system',
-              content: settings.value['transcription.chatGptPrompt']
+              content: settings.value['transcription.chatGptPrompt'] || ''
             },
             {
               role: 'user',
               content: text
             }
           ],
-          temperature: parseFloat(settings.value['transcription.temperature'])
-        },
+          temperature: parseFloat(settings.value['transcription.temperature'] || '0.7')
+        }),
       });
 
       if (!postResponseResult.ok) {
