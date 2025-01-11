@@ -94,7 +94,10 @@ function createRecorder() {
 							newRecording,
 							{ toastId: stopRecordingToastId },
 						);
-					if (!transcribeAndUpdateWithToastResult.ok) return;
+					if (!transcribeAndUpdateWithToastResult.ok) {
+						await setRecorderState('IDLE');
+						return;
+					}
 
 					const { transcribedText } = transcribeAndUpdateWithToastResult.data;
 
