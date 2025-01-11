@@ -158,7 +158,8 @@
           class="w-full min-h-[40px] overflow-y-auto text-foreground"
           placeholder="Bot interaction text will appear here..."
           readonly
-          value={gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''}
+          bind:value={gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''}
+          style="color: var(--foreground); min-height: 40px;"
         />
         <div class="absolute top-2 right-2">
           <span class="text-lg">🤖</span>
