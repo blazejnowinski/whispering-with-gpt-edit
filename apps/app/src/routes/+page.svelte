@@ -246,8 +246,8 @@
 <div class="flex flex-col gap-4">
   <button 
     class="btn" 
-    on:click={() => handleProcessWithGpt(transcribedText)}
-    disabled={isProcessing}
+    on:click={() => handleProcessWithGpt(latestRecording.transcribedText)}
+    disabled={isProcessing || !latestRecording.transcribedText}
   >
     {isProcessing ? 'Processing...' : 'Process with GPT'}
   </button>
