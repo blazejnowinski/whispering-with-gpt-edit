@@ -35,6 +35,8 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
     { role: 'user', content: text }
   ];
 
+  const messageHistory = $state([]);
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {

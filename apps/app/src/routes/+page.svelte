@@ -16,7 +16,7 @@
 	import { processWithGpt } from '$lib/services/gpt/GptService';
 	import { toast } from '$lib/utils/toast';
 
-	let gptOutput = '';
+	let gptMessages = []; // Store GPT outputs separately
 	let isProcessing = false;
 
 	async function handleProcessWithGpt(transcribedText: string) {
@@ -35,8 +35,9 @@
 			const prompt = settings.value['transcription.prompt'];
 			console.log('Using prompt:', prompt);
 			console.log('Calling processWithGpt...');
-			gptOutput = await processWithGpt(transcribedText, prompt || '');
-			console.log('GPT response received:', gptOutput);
+			const gptResponse = await processWithGpt(transcribedText, prompt || '');
+			gptMessages.push(gptResponse); // Add to the array
+			console.log('GPT response received:', gptResponse);
 			toast.success({
 				title: 'GPT Processing Complete',
 				description: 'Response received from GPT'
@@ -151,18 +152,23 @@
 		</div>
 
 		<div class="flex w-full items-center gap-2 mt-4">
-			<Input
+			<div class="relative w-full"> {/* Added relative div for bot icon positioning */}
+        <Input
 				id="bot-input"
 				class="w-full"
 				placeholder="Bot interaction text will appear here..."
 				readonly
-				value={gptOutput}
+				value={gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : ''}
 			/>
+        <div class="absolute top-2 right-2"> {/* Position bot icon */}
+          <span class="text-lg">🤖</span>
+        </div>
+      </div>
 			<WhisperingButton
 				tooltipContent="Copy bot text"
 				onclick={() => clipboard.copyTextToClipboardWithToast({
 					label: 'bot response',
-					text: gptOutput,
+					text: gptMessages.length > 0 ? gptMessages[gptMessages.length - 1] : '',
 				})}
 				class="dark:bg-secondary dark:text-secondary-foreground px-4 py-2"
 			>
@@ -253,22 +259,3 @@
 		</p>
 	</div>
 </main>
-
-
-<!-- Add this near your transcription output -->
-<div class="flex flex-col gap-4">
-  <button 
-    class="btn" 
-    on:click={() => handleProcessWithGpt(latestRecording.transcribedText)}
-    disabled={isProcessing || !latestRecording.transcribedText}
-  >
-    {isProcessing ? 'Processing...' : 'Process with GPT'}
-  </button>
-
-  {#if gptOutput}
-    <div class="p-4 bg-card text-card-foreground rounded-lg">
-      <h3 class="text-lg font-semibold mb-2">GPT Output</h3>
-      <p class="whitespace-pre-wrap">{gptOutput}</p>
-    </div>
-  {/if}
-</div>
