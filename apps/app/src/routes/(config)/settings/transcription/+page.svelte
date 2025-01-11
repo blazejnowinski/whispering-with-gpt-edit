@@ -249,4 +249,20 @@
 			description="Custom instructions to guide the transcription process. Leave empty for default behavior."
 		/>
 	</div>
+
+	<div class="grid gap-2">
+		<SettingsLabelTextarea
+			id="chatgpt-prompt"
+			label="ChatGPT Prompt"
+			placeholder="Optional prompt for ChatGPT processing"
+			value={settings.value['transcription.chatGptPrompt']}
+			oninput={({ currentTarget: { value } }) => {
+				settings.value = {
+					...settings.value,
+					'transcription.chatGptPrompt': value,
+				};
+			}}
+			description="Custom instructions for ChatGPT to process the transcription. Leave empty for no ChatGPT processing."
+		/>
+	</div>
 </div>

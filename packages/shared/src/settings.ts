@@ -72,6 +72,7 @@ export const settingsSchema = z.object({
 	'transcription.selectedTranscriptionService': z.enum(TRANSCRIPTION_SERVICES),
 	'transcription.outputLanguage': z.enum(SUPPORTED_LANGUAGES),
 	'transcription.prompt': z.string(),
+	'transcription.chatGptPrompt': z.string(),
 	'transcription.temperature': z.string(),
 
 	// Service-specific settings
