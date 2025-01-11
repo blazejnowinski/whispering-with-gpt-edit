@@ -152,7 +152,7 @@
 		</div>
 
 		<div class="flex w-full items-center gap-2 mt-4">
-			<div class="relative w-full"> {/* Added relative div for bot icon positioning */}
+			<div class="relative w-full"> <!-- Added relative div for bot icon positioning -->
         <Input
 				id="bot-input"
 				class="w-full"
