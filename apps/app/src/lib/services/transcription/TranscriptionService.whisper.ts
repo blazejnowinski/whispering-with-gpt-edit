@@ -105,7 +105,7 @@ export function createTranscriptionServiceWhisper({
 								})
 							})).min(1)
 						}),
-						body: {
+						body: JSON.stringify({
 							model: 'gpt-4',
 							messages: [
 								{
@@ -118,7 +118,7 @@ export function createTranscriptionServiceWhisper({
 								}
 							],
 							temperature: parseFloat(settings.value['transcription.temperature']) || 0.7
-						}
+						})
 					});
 
 					if (!gptResponse.ok) {
