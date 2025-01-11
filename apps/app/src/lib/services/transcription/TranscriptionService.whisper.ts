@@ -67,6 +67,7 @@ export function createTranscriptionServiceWhisper({
 				url: 'https://api.openai.com/v1/audio/transcriptions',
 				headers: {
 					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+					'Content-Type': 'application/json'
 				},
 				schema: whisperApiResponseSchema,
 			});
@@ -88,11 +89,11 @@ export function createTranscriptionServiceWhisper({
 			const transcribedText = whisperApiResponse.text.trim();
 
 			// Second API call to GPT for processing
-			const gptResponse = await HttpService.post({
+			const gptResult = await HttpService.post({
 				url: 'https://api.openai.com/v1/chat/completions',
 				headers: {
-					Authorization: `Bearer ${settings.value['transcription.openAi.apiKey']}`,
-					'Content-Type': 'application/json',
+					'Authorization': `Bearer ${settings.value['transcription.openAi.apiKey']}`,
+					'Content-Type': 'application/json'
 				},
 				body: JSON.stringify({
 					model: 'gpt-3.5-turbo',
@@ -106,19 +107,19 @@ export function createTranscriptionServiceWhisper({
 							content: transcribedText
 						}
 					],
-					temperature: options.temperature ? parseFloat(options.temperature) : 0.7,
+					temperature: parseFloat(options.temperature) || 0.7
 				}),
 			});
 
-			if (!gptResponse.ok) {
+			if (!gptResult.ok) {
 				return TranscriptionServiceErr({
 					title: 'GPT Processing Error',
-					description: `Failed to process text with GPT: ${gptResponse.error}`,
-					action: { type: 'more-details', error: gptResponse.error },
+					description: `Failed to process text with GPT: ${gptResult.error}`,
+					action: { type: 'more-details', error: gptResult.error },
 				});
 			}
 
-			const processedText = gptResponse.data.choices[0].message.content.trim();
+			const processedText = gptResult.data.choices[0].message.content.trim();
 			return Ok(processedText);
 		},
 	};
