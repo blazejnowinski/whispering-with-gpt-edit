@@ -118,10 +118,9 @@ export const registerShortcuts = createRegisterShortcuts();
 
 function createRegisterShortcuts() {
 	const jobQueue = createJobQueue<RegisterShortcutJob>();
-
   let recordingCallback: (() => void) | null = null;
 
-  export function initializeShortcuts(toggleRecordingFn: () => void) {
+  const initializeShortcuts = (toggleRecordingFn: () => void) => {
     recordingCallback = toggleRecordingFn;
     const initialSilentJob = async () => {
       unregisterAllLocalShortcuts();
@@ -138,9 +137,10 @@ function createRegisterShortcuts() {
       }
     };
     jobQueue.addJobToQueue(initialSilentJob());
-  }
+  };
 
 	return {
+    initializeShortcuts,
 		registerLocalShortcut: ({
 			shortcut,
 			callback,
