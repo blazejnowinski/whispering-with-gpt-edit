@@ -5,7 +5,13 @@ const { OpenAI } = require('openai');
 
 const app = express();
 
-app.use(cors());
+// Enable CORS for all routes
+app.use(cors({
+  origin: '*',
+  methods: ['POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 
 app.post('/api/gpt', async (req, res) => {
@@ -34,6 +40,7 @@ app.post('/api/gpt', async (req, res) => {
   }
 });
 
-app.listen(80, '0.0.0.0', () => {
-  console.log('Server running on port 80');
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on port ${PORT}`);
 });
