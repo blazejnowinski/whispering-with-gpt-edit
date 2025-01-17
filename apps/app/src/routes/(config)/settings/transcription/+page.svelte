@@ -1,20 +1,5 @@
 
-<div class="grid gap-6">
-  <div class="grid gap-2">
-    <SettingsLabelTextarea
-      id="childgpt-prompt"
-      label="ChildGPT Prompt"
-      placeholder="Enter prompt for ChildGPT interactions..."
-      value={settings.value['transcription.childGptPrompt'] ?? ''}
-      onValueChange={(value) =>
-        setSettings({
-          ...settings.value,
-          'transcription.childGptPrompt': value
-        })
-      }
-    />
-  </div>
-</div>
+
 
 <script lang="ts">
 	import CopyableCode from '$lib/components/CopyableCode.svelte';
