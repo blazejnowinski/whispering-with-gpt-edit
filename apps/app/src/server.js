@@ -5,8 +5,17 @@ const { OpenAI } = require('openai');
 
 const app = express();
 
-app.use(cors());
+// Enable CORS for all routes
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json());
+
+// Add health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
 
 app.post('/api/gpt', async (req, res) => {
   try {
