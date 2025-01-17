@@ -5,21 +5,16 @@ const { OpenAI } = require('openai');
 
 const app = express();
 
-// Enable CORS for all routes
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
-
-// Add health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
-});
 
 app.post('/api/gpt', async (req, res) => {
   try {
     const { text, prompt, apiKey } = req.body;
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
 
     const openai = new OpenAI({ apiKey });
     const response = await openai.chat.completions.create({

@@ -26,7 +26,7 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
 
   const systemPrompt = prompt || settings.value['transcription.chatGptPrompt'] || 'You are a helpful assistant. Please respond in the same language as the user\'s input.';
 
-  const response = await fetch(`https://${window.location.hostname}/api/gpt`, {
+  const response = await fetch(`/api/gpt`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
