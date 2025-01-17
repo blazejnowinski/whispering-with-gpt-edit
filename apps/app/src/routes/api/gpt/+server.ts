@@ -13,7 +13,7 @@ export async function POST(event: RequestEvent) {
 
     const openai = new OpenAI({ apiKey });
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini-2024-07-18',
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: text }
