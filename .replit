@@ -9,3 +9,6 @@ externalPort = 80
 build = "cd apps/app && pnpm install && pnpm run build"
 run = "cd apps/app && pnpm run preview"
 deploymentTarget = "cloudrun"
+
+[nix]
+channel = "stable-24_05"
