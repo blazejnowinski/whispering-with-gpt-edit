@@ -1,15 +1,10 @@
-
 import type { HttpService } from '../http/HttpService';
 import { z } from 'zod';
 import { settings } from '$lib/stores/settings.svelte.js';
 import { HttpServiceErrIntoTranscriptionServiceErr, TranscriptionServiceErr } from '../transcription/TranscriptionService';
 
 const gptResponseSchema = z.object({
-  choices: z.array(z.object({
-    message: z.object({
-      content: z.string()
-    })
-  }))
+  content: z.string()
 });
 
 export async function processWithGpt(text: string, prompt: string): Promise<string> {
@@ -31,22 +26,15 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
 
   const systemPrompt = prompt || settings.value['transcription.chatGptPrompt'] || 'You are a helpful assistant. Please respond in the same language as the user\'s input.';
 
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: text }
-  ];
-
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+  const response = await fetch('http://0.0.0.0:3000/api/gpt', {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      model: 'gpt-3.5-turbo',
-      messages,
-      temperature: 0.7,
-      max_tokens: 1000
+      text,
+      prompt: systemPrompt,
+      apiKey
     })
   });
 
@@ -64,10 +52,10 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
   if (!result.success) {
     throw TranscriptionServiceErr({
       title: 'Invalid GPT Response',
-      description: 'Received unexpected response format from OpenAI',
+      description: 'Received unexpected response format from server',
       action: { type: 'more-details', error: result.error }
     });
   }
 
-  return result.data.choices[0].message.content;
+  return result.data.content;
 }
