@@ -39,10 +39,16 @@ export async function processWithGpt(text: string, prompt: string): Promise<stri
   });
 
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('GPT Processing Error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    });
     throw TranscriptionServiceErr({
       title: 'GPT Processing Failed',
-      description: `Failed to process text with GPT: ${response.statusText}`,
-      action: { type: 'more-details', error: await response.text() }
+      description: `Failed to process text with GPT (${response.status}): ${errorText || response.statusText}`,
+      action: { type: 'more-details', error: errorText }
     });
   }
 
