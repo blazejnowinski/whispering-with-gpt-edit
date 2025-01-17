@@ -1,17 +1,17 @@
 
 const express = require('express');
-const multer = require('multer');
+const cors = require('cors');
 const { OpenAI } = require('openai');
+
 const app = express();
 
+app.use(cors());
 app.use(express.json());
-
-const upload = multer({ storage: multer.memoryStorage() });
 
 app.post('/api/gpt', async (req, res) => {
   try {
     const { text, prompt, apiKey } = req.body;
-    
+
     const openai = new OpenAI({ apiKey });
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
@@ -25,6 +25,7 @@ app.post('/api/gpt', async (req, res) => {
 
     res.json({ content: response.choices[0].message.content });
   } catch (error) {
+    console.error('GPT API Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
