@@ -13,8 +13,8 @@ const config = {
       outDir: 'public'
     }),
     files: {
-      assets: 'static',
-      public: 'public'
+      lib: 'src/lib',
+      routes: 'src/routes'
     }
   }
 };
