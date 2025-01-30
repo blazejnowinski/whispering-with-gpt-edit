@@ -9,8 +9,7 @@ const config = {
     adapter: adapter({
       runtime: 'edge',
       regions: ['fra1'],
-      split: true,
-      outDir: 'public'
+      split: true
     }),
     files: {
       lib: 'src/lib',
