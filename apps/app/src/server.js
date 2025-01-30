@@ -1,1 +1,2 @@
-// This file is no longer needed as we're using SvelteKit's API routes
+
+// This file is not needed in serverless architecture
