@@ -9,10 +9,12 @@ const config = {
     adapter: adapter({
       runtime: 'edge',
       regions: ['fra1'],
-      split: true
+      split: true,
+      outDir: 'public'
     }),
     files: {
-      assets: 'public'
+      assets: 'static',
+      public: 'public'
     }
   }
 };
