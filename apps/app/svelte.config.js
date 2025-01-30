@@ -1,4 +1,3 @@
-
 import adapter from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
@@ -6,16 +5,12 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 const config = {
   preprocess: vitePreprocess(),
   kit: {
-    adapter: adapter({
-      runtime: 'edge',
-      regions: ['fra1'],
-      split: true
-    }),
+    adapter: adapter(),
     files: {
       lib: 'src/lib',
-      routes: 'src/routes'
-    }
-  }
+      routes: 'src/routes',
+    },
+  },
 };
 
 export default config;
