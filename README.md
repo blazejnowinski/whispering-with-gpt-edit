@@ -1,3 +1,5 @@
+TESTTEST
+
 <p align="center">
   <a href="https://whispering.bradenwong.com">
     <img width="180" src="./apps/app/src-tauri/recorder-state-icons/studio_microphone.png" alt="Whispering">
